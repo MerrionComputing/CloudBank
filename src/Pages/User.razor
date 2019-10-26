@@ -1,0 +1,103 @@
+﻿@page "/user"
+
+@inject IRetailBankApi retailBankApi
+@inject HttpClient Http
+
+<h1>User</h1>
+<hr />
+
+<!-- Create a new account -->
+
+<h3>Create a new account</h3>
+<h3><span class="circle-cropper" style="fill:azure"><span class="oi oi-monitor" aria-hidden="true"></span></span>&nbsp;@LastFunctionMessage</h3>
+<hr />
+<AuthorizeView>
+    <Authorizing>
+        <span class="oi oi-eye" aria-hidden="true"></span>
+        Checking user authorisation to perform account actions
+    </Authorizing>
+    <Authorized>
+        <EditForm Model="@accountopenpayload" Context="deposit_context" OnValidSubmit="@(() => CreateAccount())">
+            <DataAnnotationsValidator />
+            <div class="form-group ">
+                <span class="oi oi-key" aria-hidden="true"></span> Account number:
+                <input placeholder="Account Number" @bind-value="AccountNumber" />
+                <button class="btn btn-secondary" @onclick="GenerateRandomAccountNumber">Generate Random Account Number</button>
+            </div>
+            <div class="form-group ">
+                <label for="clientname">Client name: </label>
+                <InputText id="clientname" @bind-Value="accountopenpayload.ClientName" />
+                <ValidationMessage For="@(() => accountopenpayload.ClientName  )" />
+            </div>
+            <div class="form-group ">
+                <label for="depositamount">Opening balance: </label>
+                <InputNumber id="depositamount" @bind-Value="accountopenpayload.OpeningBalance" />
+                <ValidationMessage For="@(() => accountopenpayload.OpeningBalance )" />
+            </div>
+            <div class="form-group ">
+                <label for="comments">Comments: </label>
+                <InputTextArea id="comments"
+                               @bind-Value="accountopenpayload.Commentary "
+                               class="w-100" />
+                <ValidationMessage For="@(() => accountopenpayload.Commentary )" />
+            </div>
+            <button type="submit" class="btn btn-secondary">
+                <span class="oi oi-cloud-upload" aria-hidden="true"></span>
+                Submit
+            </button>
+            <button type="reset" class="btn btn-secondary" @onclick="@(() => accountopenpayload = new AccountOpeningData() )">
+                <span class="oi oi-action-undo" aria-hidden="true"></span>
+                Clear
+            </button>
+        </EditForm>
+    </Authorized>
+    <NotAuthorized>
+        <span class="oi oi-ban" aria-hidden="true"></span>
+        You have no authorisation to create a new account
+    </NotAuthorized>
+</AuthorizeView>
+
+<hr />
+<!-- Diagnostic text to tell you about the last run command-->
+<p><span class="oi oi-clock " aria-hidden="true"></span>&nbsp;Last Run Time: @LastRunTime </p>
+
+@code {
+
+
+    [Parameter]
+    public string AccountNumber { get; set; } = "";
+
+    [Parameter]
+    public string LastFunctionMessage { get; set; } = @"Welcome to Cloudbank.  Connecting...";
+
+    [Parameter]
+    public TimeSpan LastRunTime { get; set; }
+
+    [Parameter]
+    public AccountOpeningData accountopenpayload { get; set; } = new AccountOpeningData();
+
+    public void GenerateRandomAccountNumber()
+    {
+        Random rnd = new Random();
+        string datepart = DateTime.UtcNow.ToString("yyyyMMddhhmm");
+
+
+        AccountNumber = $"{Convert.ToChar(rnd.Next(65, 90))}-{datepart}-{Convert.ToChar(rnd.Next(65, 90))}";
+    }
+
+    private async Task CreateAccount()
+    {
+        try
+        {
+            LastFunctionMessage = $"Creating new account for {accountopenpayload.ClientName}...";
+            var result = await retailBankApi.OpenAccount(Http, AccountNumber, accountopenpayload);
+            LastFunctionMessage = result.Message;
+            LastRunTime = result.ExecutionTime;
+        }
+        catch (Exception ex)
+        {
+            LastFunctionMessage = ex.Message;
+        }
+        this.StateHasChanged();
+    }
+}

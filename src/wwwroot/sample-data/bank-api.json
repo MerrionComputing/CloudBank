@@ -1,0 +1,38 @@
+[
+  {
+    "commandname": "Get Balance",
+    "route": "GetBalance/{accountnumber}",
+    "method": "GET",
+    "apikey": ""
+  },
+  {
+    "commandname": "Open Account",
+    "route": "OpenAccount/{accountnumber}",
+    "method": "POST",
+    "apikey": ""
+  },
+  {
+    "commandname": "Deposit Money",
+    "route": "DepositMoney/{accountnumber}",
+    "method": "POST",
+    "apikey": ""
+  },
+  {
+    "commandname": "Withdraw Money",
+    "route": "WithdrawMoney/{accountnumber}",
+    "method": "POST",
+    "apikey": ""
+  },
+  {
+    "commandname": "Set Owner",
+    "route": "SetBeneficialOwner/{accountnumber}/{ownername}",
+    "method": "POST",
+    "apikey": ""
+  },
+  {
+    "commandname": "Set Overdraft",
+    "route": "SetOverdraftLimit/{accountnumber}",
+    "method": "POST",
+    "apikey": ""
+  }
+]

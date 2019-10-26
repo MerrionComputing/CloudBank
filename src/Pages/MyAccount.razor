@@ -1,0 +1,298 @@
+﻿@using CloudBank.Services
+
+
+@page "/myaccount"
+@page "/myaccount/{accountnumber}"
+
+@inject HttpClient Http
+@inject IRetailBankApi retailBankApi
+@inject IBankAccount bankAccount
+
+
+<h1>My Account (@bankAccount.BankAccountNumber)</h1>
+<hr />
+
+<h3><span class="circle-cropper" style="fill:azure"><span class="oi oi-monitor" aria-hidden="true"></span></span>&nbsp;@LastFunctionMessage</h3>
+<hr />
+
+<AuthorizeView>
+    <Authorizing>
+        <span class="oi oi-eye" aria-hidden="true"></span>
+        Checking user authorisation to perform account actions
+    </Authorizing>
+
+    <Authorized Context="authorized_context">
+        <MatAccordion>
+            <MatExpansionPanel>
+                <MatExpansionPanelSummary>
+                    <MatExpansionPanelHeader>
+                        <span class="oi oi-eye" aria-hidden="true"></span>
+                    </MatExpansionPanelHeader>
+                    <MatExpansionPanelSubHeader>
+                        <strong>
+                            Get Balance
+                        </strong>
+                    </MatExpansionPanelSubHeader>
+                </MatExpansionPanelSummary>
+                <MatExpansionPanelDetails>
+                    <p>Get the current balance of the account</p>
+                    <!-- When "as of date" is implemented it can go here-->
+                    <button @onclick="@(() => GetBalance())" class="btn btn-secondary">
+                        <span class="oi oi-cloud-download" aria-hidden="true"></span>
+                        Get Balance
+                    </button>
+                </MatExpansionPanelDetails>
+            </MatExpansionPanel>
+            <MatExpansionPanel>
+                <MatExpansionPanelSummary>
+                    <MatExpansionPanelHeader>
+                        <span class="oi oi-plus" aria-hidden="true"></span>
+                    </MatExpansionPanelHeader>
+                    <MatExpansionPanelSubHeader>
+                        <strong>
+                            Make a deposit
+                        </strong>
+                    </MatExpansionPanelSubHeader>
+                </MatExpansionPanelSummary>
+                <MatExpansionPanelDetails>
+                    <p>To make a deposit we need to specify a source of the deposit and an amount</p>
+                    <EditForm Model="@depositpayload" Context="deposit_context" OnValidSubmit="@(() => DepositMoney())">
+                        <DataAnnotationsValidator />
+                        <div class="form-group ">
+                            <label for="depositamount">Amount to deposit: </label>
+                            <InputNumber id="depositamount" @bind-Value="depositpayload.DepositAmount" />
+                            <ValidationMessage For="@(() => depositpayload.DepositAmount)" />
+                        </div>
+                        <div class="form-group ">
+                            <label for="fundsource">Source of funds: </label>
+                            <InputText id="fundsource" @bind-Value="depositpayload.Source" />
+                            <ValidationMessage For="@(() => depositpayload.Source  )" />
+                        </div>
+                        <div class="form-group ">
+                            <label for="comments">Comments: </label>
+                            <InputTextArea id="comments"
+                                           @bind-Value="depositpayload.Commentary "
+                                           class="w-100" />
+                            <ValidationMessage For="@(() => depositpayload.Commentary )" />
+                        </div>
+                        <button type="submit" class="btn btn-secondary">
+                            <span class="oi oi-cloud-upload" aria-hidden="true"></span>
+                            Submit
+                        </button>
+                        <button type="reset" class="btn btn-secondary" @onclick="@(() => depositpayload = new MoneyDepositData () )">
+                            <span class="oi oi-action-undo" aria-hidden="true"></span>
+                            Clear
+                        </button>
+                    </EditForm>
+                </MatExpansionPanelDetails>
+            </MatExpansionPanel>
+            <MatExpansionPanel>
+                <MatExpansionPanelSummary>
+                    <MatExpansionPanelHeader>
+                        <span class="oi oi-minus" aria-hidden="true"></span>
+                    </MatExpansionPanelHeader>
+                    <MatExpansionPanelSubHeader>
+                        <strong>
+                        Make a withdrawal
+                        </strong>
+                    </MatExpansionPanelSubHeader>
+                </MatExpansionPanelSummary>
+                <MatExpansionPanelDetails>
+                    <p>To make a withdrawal we need to specify an amount</p>
+                    <div>
+                        <EditForm Model="@withdrawpayload" Context="withdrawal_context" OnValidSubmit="@(() => WithdrawMoney())">
+                            <DataAnnotationsValidator />
+                            <div class="form-group ">
+                                <label for="withdrawamount">Amount to withdraw: </label>
+                                <InputNumber id="withdrawamount" @bind-Value="withdrawpayload.AmountWithdrawn" />
+                                <ValidationMessage For="@(() => withdrawpayload.AmountWithdrawn)" />
+                            </div>
+                            <div class="form-group ">
+                                <label for="comments">Comments: </label>
+                                <InputTextArea id="comments"
+                                               @bind-Value="withdrawpayload.Commentary"
+                                               class="w-100" />
+                                <ValidationMessage For="@(() => withdrawpayload.Commentary )" />
+                            </div>
+                            <button type="submit" class="btn btn-secondary">
+                                <span class="oi oi-cloud-upload" aria-hidden="true"></span>
+                                Submit
+                            </button>
+                            <button type="reset" class="btn btn-secondary" @onclick="@(() => withdrawpayload = new MoneyWithdrawnData() )">
+                                <span class="oi oi-action-undo" aria-hidden="true"></span>
+                                Clear
+                            </button>
+                        </EditForm>
+                    </div>
+                    <p>An error may occur if there are insufficient funds to cover the withdrawal (including any set overdraft)</p>
+                </MatExpansionPanelDetails>
+            </MatExpansionPanel>
+            <MatExpansionPanel>
+                <MatExpansionPanelSummary>
+                    <MatExpansionPanelHeader>
+                        <span class="oi oi-clipboard" aria-hidden="true"></span>
+                    </MatExpansionPanelHeader>
+                    <MatExpansionPanelSubHeader>
+                        <strong>
+                            Set an overdraft limit
+                        </strong>
+                    </MatExpansionPanelSubHeader>
+                </MatExpansionPanelSummary>
+                <MatExpansionPanelDetails>
+                    <p>To set a new overdraft limit specify the new overdraft amount</p>
+                    <p>You can increase or decrease the new limit</p>
+                    <EditForm Model="@overdraftpayload" OnValidSubmit="@(() => SetOverdraftLimit())">
+                        <DataAnnotationsValidator />
+                        <div class="form-group ">
+                            <label for="newlimit">New Limit: </label>
+                            <InputNumber id="newlimit" @bind-Value="overdraftpayload.NewOverdraftLimit" />
+                            <ValidationMessage For="@(() => overdraftpayload.NewOverdraftLimit)" />
+                        </div>
+                        <div class="form-group ">
+                            <label for="comments">Comments: </label>
+                            <InputTextArea id="comments"
+                                           @bind-Value="overdraftpayload.Commentary"
+                                           class="w-100" />
+                            <ValidationMessage For="@(() => overdraftpayload.Commentary )" />
+                        </div>
+                        <button type="submit" class="btn btn-secondary">
+                            <span class="oi oi-cloud-upload" aria-hidden="true"></span>
+                            Submit
+                        </button>
+                        <button type="reset" class="btn btn-secondary" @onclick="@(() => overdraftpayload = new OverdraftSetData() )">
+                            <span class="oi oi-action-undo" aria-hidden="true"></span>
+                            Clear
+                        </button>
+                    </EditForm>
+                </MatExpansionPanelDetails>
+            </MatExpansionPanel>
+        </MatAccordion>
+    </Authorized>
+
+    <NotAuthorized>
+        <span class="oi oi-ban" aria-hidden="true"></span>
+        You have no authorisation to perform account actions
+    </NotAuthorized>
+</AuthorizeView>
+
+<hr />
+<!-- Diagnostic text to tell you about the last run command-->
+<p><span class="oi oi-clock " aria-hidden="true"></span>&nbsp;Last Run Time: @LastRunTime to sequence number : @LastSequenceNumber</p>
+
+@code {
+
+    [Parameter]
+    public bool AccountLoaded { get; set; } = false;
+
+    [Parameter]
+    public string accountnumber { get; set; }
+
+    [Parameter]
+    public string LastFunctionMessage { get; set; } = @"Welcome to Cloudbank.  Connecting...";
+
+    [Parameter]
+    public bool InError { get; set; } = false;
+
+    [Parameter]
+    public bool Connected { get; set; } = false;
+
+    [Parameter]
+    public TimeSpan LastRunTime { get; set; }
+
+    [Parameter]
+    public int LastSequenceNumber { get; set; }
+
+
+    [Parameter]
+    public MoneyWithdrawnData withdrawpayload { get; set; } = new MoneyWithdrawnData();
+
+    [Parameter]
+    public MoneyDepositData depositpayload{ get; set; } = new MoneyDepositData();
+
+    [Parameter]
+    public OverdraftSetData overdraftpayload { get; set; } = new OverdraftSetData();
+
+
+    private async Task GetBalance()
+    {
+        LastFunctionMessage = $"Getting balance for {accountnumber} at {DateTime.Now}  ";
+
+        try
+        {
+            var result = await retailBankApi.GetAccountBalance(Http, accountnumber);
+            LastFunctionMessage = result.Message;
+            LastRunTime = result.ExecutionTime;
+            LastSequenceNumber = result.SequenceNumber;
+        }
+        catch (Exception ex)
+        {
+            LastFunctionMessage = ex.Message;
+        }
+
+    }
+
+    private async Task DepositMoney()
+    {
+        try
+        {
+            LastFunctionMessage = $"Depositing {depositpayload.DepositAmount}...";
+            var result = await retailBankApi.DepositMoney(Http, accountnumber,depositpayload );
+            LastFunctionMessage = result.Message;
+            LastRunTime = result.ExecutionTime;
+            LastSequenceNumber = 0;
+        }
+        catch (Exception ex)
+        {
+            LastFunctionMessage = ex.Message;
+        }
+        this.StateHasChanged();
+    }
+
+    private async Task WithdrawMoney()
+    {
+        try
+        {
+            LastFunctionMessage = $"Requesting withdrawal of {withdrawpayload.AmountWithdrawn}...";
+            var result = await retailBankApi.WithdrawMoney (Http, accountnumber,withdrawpayload );
+            LastFunctionMessage = result.Message;
+            LastRunTime = result.ExecutionTime;
+            LastSequenceNumber = result.SequenceNumber  ;
+        }
+        catch (Exception ex)
+        {
+            LastFunctionMessage = ex.Message;
+        }
+        this.StateHasChanged();
+    }
+
+    private async Task SetOverdraftLimit()
+    {
+        try
+        {
+            LastFunctionMessage = $"Setting overdraft limit to {overdraftpayload.Commentary}...";
+            var result = await retailBankApi.SetOverdraft(Http, accountnumber,overdraftpayload );
+            LastFunctionMessage = result.Message;
+            LastRunTime = result.ExecutionTime;
+            LastSequenceNumber = 0  ;
+        }
+        catch (Exception ex)
+        {
+            LastFunctionMessage = ex.Message;
+        }
+        this.StateHasChanged();
+    }
+
+
+    protected override void OnInitialized()
+    {
+        if (!string.IsNullOrEmpty(accountnumber))
+        {
+            if (null != bankAccount)
+            {
+                bankAccount.BankAccountNumber = accountnumber;
+            }
+        }
+
+    }
+
+}

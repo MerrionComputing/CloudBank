@@ -1,0 +1,57 @@
+﻿@page "/fetchdata"
+@inject NavigationManager NavigationManager
+@inject HttpClient Http
+
+<h1>Bank Accounts</h1>
+
+<p>Sample bank accounts</p>
+
+@if (accounts == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th width="20%">Account Number</th>
+                <th>Owner</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var account in accounts)
+            {
+                <tr>
+                    <td>
+                        <button class="btn btn-primary" @onclick="() => NavigateToAccount(account.AccountNumber)">
+                            @account.AccountNumber
+                        </button>
+                    </td>
+                    <td>@account.ClientName </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    BankAccount[] accounts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        accounts = await Http.GetJsonAsync<BankAccount[]>("sample-data/bank-accounts.json");
+    }
+
+    public void NavigateToAccount(string accountNumber)
+    {
+        NavigationManager.NavigateTo($"myaccount/{accountNumber}");
+    }
+
+    public class BankAccount
+    {
+        public String AccountNumber { get; set; }
+
+        public string ClientName { get; set; }
+    }
+}

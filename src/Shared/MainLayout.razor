@@ -1,0 +1,40 @@
+﻿@inherits LayoutComponentBase
+
+@inject HttpClient Http
+@inject IRetailBankApi retailBankApi
+
+<BlazoredModal />
+
+<div class="sidebar">
+    <NavMenu />
+</div>
+
+<div class="main">
+    <div class="top-row px-4">
+        <a href="https://github.com/MerrionComputing/EventsSourcing-on-Azure-Functions" target="_blank" class="ml-md-auto">GitHub source</a>
+    </div>
+
+    <div class="content px-4">
+        @Body
+    </div>
+</div>
+
+@code
+{
+
+    [Parameter]
+    public ApiCommand[] apiCommands { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (null == apiCommands)
+        {
+            apiCommands = await Http.GetJsonAsync<ApiCommand[]>("sample-data/bank-api.json");
+            if (null != apiCommands)
+            {
+                // fix up the rertail bank api with them...
+                retailBankApi.Initialise(apiCommands);
+            }
+        }
+    }
+}

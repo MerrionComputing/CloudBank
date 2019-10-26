@@ -1,0 +1,26 @@
+﻿[
+  {
+    "accountnumber": "A-001-123456-A",
+    "clientname": "Big data test"
+  },
+  {
+    "accountnumber": "A-001-223456-B",
+    "clientname": "Mr Duncan Jones"
+  },
+  {
+    "accountnumber": "B-001-223456-B",
+    "clientname": "Mr Gordon Jones"
+  },
+  {
+    "accountnumber": "C-001-223456-B",
+    "clientname": "Mrs Priscilla Jones"
+  },
+  {
+    "accountnumber": "D-001-223456-B",
+    "clientname": "Li Liu"
+  },
+  {
+    "accountnumber": "G-001-223456-B",
+    "clientname": "Ms Andrea Gormond"
+  }
+]
