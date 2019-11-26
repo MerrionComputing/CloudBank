@@ -181,4 +181,10 @@ This sends the command to the Azure function by http:
 
 ## Deployment
 
-Because this Blazor front end runs entirely on the client it can be hosted on a static website - and the 
+Because this Blazor front end runs entirely on the client it can be hosted on a static website - and the static website functionality that you get with an Azure storage account is perfect for this.
+
+![Azure storage static website](static_website.jpg)
+
+You will need to add this static website URL to the **CORS** settings of your Azure functions application so that it is allowed to be accessed from there:
+
+![Azure functions CORS settings](enable_cors.jpg)
