@@ -17,30 +17,49 @@ else
             <tr>
                 <th width="20%">Account Number</th>
                 <th>Owner</th>
+                <th>Live view</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var account in accounts)
+            @foreach (BankAccount account in accounts.Values )
             {
-                <tr>
-                    <td>
-                        <button class="btn btn-primary" @onclick="() => NavigateToAccount(account.AccountNumber)">
-                            @account.AccountNumber
+            <tr>
+                <td>
+                    <button class="btn btn-primary" @onclick="() => NavigateToAccount(account.AccountNumber)">
+                        @account.AccountNumber
+                    </button>
+                </td>
+                <td>@account.ClientName </td>
+                <td>
+                    @if (!account.Watching)
+                    {
+                        <button class="btn btn-info" @onclick="() => WatchAccount(account.AccountNumber)">
+                            Watch this account
                         </button>
-                    </td>
-                    <td>@account.ClientName </td>
-                </tr>
+                    }
+                    else
+                    {
+                        <span>Watching...</span>
+                    }
+                </td>
+            </tr>
             }
         </tbody>
     </table>
 }
 
 @code {
-    BankAccount[] accounts;
+    Dictionary<string,BankAccount> accounts;
 
     protected override async Task OnInitializedAsync()
     {
-        accounts = await Http.GetJsonAsync<BankAccount[]>("sample-data/bank-accounts.json");
+        accounts = new Dictionary<string, BankAccount>();
+
+        foreach(BankAccount acct in await Http.GetJsonAsync<BankAccount[]>("sample-data/bank-accounts.json"))
+        {
+            accounts.Add(acct.AccountNumber, acct);
+        }
+
     }
 
     public void NavigateToAccount(string accountNumber)
@@ -48,10 +67,22 @@ else
         NavigationManager.NavigateTo($"myaccount/{accountNumber}");
     }
 
+    public void WatchAccount(string accountNumber)
+    {
+        if (accounts.ContainsKey(accountNumber ))
+        {
+            accounts[accountNumber].Watching = true;
+            this.StateHasChanged();
+        }
+    }
+
     public class BankAccount
     {
         public String AccountNumber { get; set; }
 
         public string ClientName { get; set; }
+
+        // Is this bank account in the live view
+        public bool Watching { get; set; }
     }
 }

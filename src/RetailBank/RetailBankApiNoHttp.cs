@@ -184,5 +184,39 @@ namespace CloudBank.RetailBank
 
             return new FunctionResponse() { Message = $"Not connected to retail bank API", InError = true };
         }
+
+        // Accrued / paid interest...
+        public async Task<FunctionResponse> ApplyAccruedInterest(HttpClient httpClient, 
+            string accountnumber)
+        {
+            if (null != httpClient)
+            {
+
+                string key = "";
+
+                key = _commands.FirstOrDefault(f => f.CommandName == "Apply Accrued Interest")?.ApiKey;
+
+                Uri postTarget = new Uri(RetailBankApi.GetBase(), RetailBankApi.ApplyAccruedInterest(accountnumber, key));
+
+                string jsonContent = JsonConvert.SerializeObject("");
+                // Turn the payload into a JSON 
+                var content = new ByteArrayContent(System.Text.Encoding.UTF8.GetBytes(jsonContent));
+                content.Headers.ContentType = new MediaTypeHeaderValue(RetailBankApi.PAYLOAD_TYPE);
+
+                var response = await httpClient.PostAsync(postTarget,content );
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonString = await response.Content.ReadAsStringAsync();
+                    return JsonConvert.DeserializeObject<FunctionResponse>(jsonString);
+                }
+                else
+                {
+                    return new FunctionResponse() { Message = $"Unable to apply accrued interest - {response.StatusCode}", InError = true };
+                }
+            }
+
+            return new FunctionResponse() { Message = $"Not connected to retail bank API", InError = true };
+        }
+
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Http;
+using System.Runtime.Serialization;
 using System.Threading.Tasks; 
 
 namespace CloudBank.RetailBank
@@ -15,8 +16,9 @@ namespace CloudBank.RetailBank
         public const string ROUTE_COMMAND_WITHDRAWMONEY = @"WithdrawMoney/{accountnumber}";
         public const string ROUTE_COMMAND_SETOVERDRAFT = @"SetOverdraftLimit/{accountnumber}";
         public const string ROUTE_COMMAND_SETOWNER = @"SetBeneficialOwner/{accountnumber}/{ownername}";
+        public const string ROUTE_COMMAND_APPLYACCRUEDINTEREST = @"ApplyAccruedInterest/{accountnumber}";
+        public const string ROUTE_COMMAND_APPLYINTERESTFORALL = @"ApplyInterestForAllAccountsTrigger";
 
-        
         public const string PAYLOAD_TYPE = @"application/json";
 
         public static Uri GetBase()
@@ -88,11 +90,36 @@ namespace CloudBank.RetailBank
         {
             if (!string.IsNullOrEmpty(apikey))
             {
-                return new Uri(ROUTE_COMMAND_WITHDRAWMONEY.Replace("{accountnumber}", accountNumber).Replace("{ownername}", ownerName) + $" ? code={apikey}", UriKind.Relative);
+                return new Uri(ROUTE_COMMAND_WITHDRAWMONEY.Replace("{accountnumber}", accountNumber).Replace("{ownername}", ownerName) + $"?code={apikey}", UriKind.Relative);
             }
             else
             {
                 return new Uri(ROUTE_COMMAND_WITHDRAWMONEY.Replace("{accountnumber}", accountNumber).Replace("{ownername}", ownerName), UriKind.Relative);
+            }
+        }
+
+        public static Uri ApplyAccruedInterest(string accountNumber, string apikey)
+        {
+            if (!string.IsNullOrEmpty(apikey))
+            {
+                return new Uri(ROUTE_COMMAND_APPLYACCRUEDINTEREST.Replace("{accountnumber}", accountNumber) + $"?code={apikey}", UriKind.Relative);
+            }
+            else
+            {
+                return new Uri(ROUTE_COMMAND_APPLYACCRUEDINTEREST.Replace("{accountnumber}", accountNumber), UriKind.Relative);
+            }
+        }
+
+        public static Uri ApplyInterestForAll(string apikey)
+        {
+           
+            if (!string.IsNullOrEmpty(apikey))
+            {
+                return new Uri(ROUTE_COMMAND_APPLYINTERESTFORALL + $" ?code={apikey}", UriKind.Relative);
+            }
+            else
+            {
+                return new Uri(ROUTE_COMMAND_APPLYINTERESTFORALL, UriKind.Relative);
             }
         }
     }
@@ -147,6 +174,16 @@ namespace CloudBank.RetailBank
             return Task<FunctionResponse>.FromResult(new FunctionResponse()
             {
                 Message = "This is a mock overdraft",
+                InError = false
+            });
+        }
+
+        public Task<FunctionResponse> ApplyAccruedInterest(HttpClient httpClient, 
+            string accountnumber)
+        {
+            return Task<FunctionResponse>.FromResult(new FunctionResponse()
+            {
+                Message = "This is a mock accrued interest",
                 InError = false
             });
         }

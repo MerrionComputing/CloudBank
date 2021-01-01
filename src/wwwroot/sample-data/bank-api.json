@@ -34,5 +34,17 @@
     "route": "SetOverdraftLimit/{accountnumber}",
     "method": "POST",
     "apikey": ""
+  },
+  {
+    "commandname": "Apply Accrued Interest",
+    "route": "ApplyAccruedInterest/{accountnumber}",
+    "method": "POST",
+    "apikey": ""
+  },
+  {
+    "commandname": "Apply Interest For All Accounts",
+    "route": "ApplyInterestForAllAccountsTrigger",
+    "method": "POST",
+    "apikey": ""
   }
 ]

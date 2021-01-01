@@ -1,0 +1,63 @@
+﻿@using CloudBank.Services
+
+@page "/liveview"
+
+@inject NavigationManager NavigationManager
+
+@implements IDisposable
+<!-- SignalR live view of what is happening -->
+<h1>Live Accounts View </h1>
+<hr />
+
+<ul id="notificationList">
+    @foreach (var notification in notifications)
+    {
+        <li>@notification</li>
+    }
+</ul>
+
+@code {
+    private HubConnection hubConnection;
+    private List<object> notifications = new List<object>();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(@"https://retailbank.service.signalr.net")
+            .Build();
+
+        hubConnection.On<string, string>("ReceiveMessage", (user, message) =>
+        {
+        // Turn the message into an object...
+        string objectJson = message;
+            if (!string.IsNullOrWhiteSpace(objectJson))
+            {
+            //TODO - convert from JSON
+            notifications.Add(objectJson);
+            }
+            StateHasChanged();
+        });
+
+        await hubConnection.StartAsync();
+    }
+
+    public bool IsConnected
+    {
+        get
+        {
+            if (hubConnection != null)
+            {
+                return (hubConnection.State == HubConnectionState.Connected);
+            }
+
+            return false;
+        }
+    }
+
+    public void Dispose()
+    {
+        // Clear down the SignalR connection
+        _ = hubConnection.DisposeAsync();
+    }
+}

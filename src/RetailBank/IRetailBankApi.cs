@@ -28,5 +28,9 @@ namespace CloudBank.RetailBank
 
         // 4 - Set new overdraft
         Task<FunctionResponse> SetOverdraft(HttpClient httpClient, string accountnumber, OverdraftSetData  payload);
+
+        // 5 - Apply accrued interest
+        Task<FunctionResponse> ApplyAccruedInterest(HttpClient httpClient, string accountnumber);
+
     }
 }

@@ -23,6 +23,8 @@ namespace CloudBank
             // Authorisation
             services.AddAuthorizationCore(); 
             services.AddSingleton<AuthenticationStateProvider, DummyAuthStateProvider>();
+        
+            
         }
 
         public void Configure(IComponentsApplicationBuilder app)

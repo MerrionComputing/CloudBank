@@ -93,7 +93,7 @@
                     </MatExpansionPanelHeader>
                     <MatExpansionPanelSubHeader>
                         <strong>
-                        Make a withdrawal
+                            Make a withdrawal
                         </strong>
                     </MatExpansionPanelSubHeader>
                 </MatExpansionPanelSummary>
@@ -166,6 +166,25 @@
                     </EditForm>
                 </MatExpansionPanelDetails>
             </MatExpansionPanel>
+            <MatExpansionPanel>
+                <MatExpansionPanelSummary>
+                    <MatExpansionPanelHeader>
+                        <span class="oi oi-dollar" aria-hidden="true"></span>
+                    </MatExpansionPanelHeader>
+                    <MatExpansionPanelSubHeader>
+                        <strong>
+                            Interest
+                        </strong>
+                    </MatExpansionPanelSubHeader>
+                </MatExpansionPanelSummary>
+                <MatExpansionPanelDetails>
+                    <p>Pay any accrued interest on the account</p>
+                    <button @onclick="@(() => PayAccruedInterest())" class="btn btn-secondary">
+                        <span class="oi oi-cloud-download" aria-hidden="true"></span>
+                        Pay Interest
+                    </button>
+                </MatExpansionPanelDetails>
+            </MatExpansionPanel>
         </MatAccordion>
     </Authorized>
 
@@ -229,6 +248,22 @@
             LastFunctionMessage = ex.Message;
         }
 
+    }
+
+    private async Task PayAccruedInterest()
+    {
+        LastFunctionMessage = $"Paying accrued interest for {accountnumber} at {DateTime.Now}  ";
+
+        try
+        {
+            var result = await retailBankApi.ApplyAccruedInterest(Http, accountnumber);
+            LastFunctionMessage = result.Message;
+            LastRunTime = result.ExecutionTime;
+        }
+        catch (Exception ex)
+        {
+            LastFunctionMessage = ex.Message;
+        }
     }
 
     private async Task DepositMoney()
